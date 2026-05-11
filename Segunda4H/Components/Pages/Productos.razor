@@ -1,0 +1,180 @@
+﻿@page "/productos"
+@rendermode InteractiveServer
+<h3>Productos</h3>
+@if (_error)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        Número de inventario registrado
+    </div>
+}
+<div class="row align-items-center">
+    <div class="col col-2">
+        <label for="txtInventario" class="col-form-label">Inventario</label>
+    </div>
+    <div class="col col-10">
+        <input type="number" id="txtInventario" class="form-control" @bind="_inventario">
+    </div>
+</div>
+<div class="row mt-3 align-items-center">
+    <div class="col col-2">
+        <label for="txtNombre" class="col-form-label">Nombre</label>
+    </div>
+    <div class="col col-10">
+        <input id="txtNombre" class="form-control" @bind="_nombre">
+    </div>
+</div>
+<div class="row mt-3 align-items-center">
+    <div class="col col-2">
+        <label for="txtFrutas" class="col-form-label">Departamento</label>
+    </div>
+    <div class="col col-10">
+        <input type="radio" id="txtFrutas" name="rdbDepartamento" class="form-check-input" @onchange="@(() => _departamento = "Frutas")"><label class="form-check-label ms-2" for="txtFrutas">Frutas</label>
+        <input type="radio" id="txtVerduras" name="rdbDepartamento" class="form-check-input" @onchange="@(() => _departamento = "Verduras")"><label class="form-check-label ms-2" for="txtVerduras">Verduras</label>
+        <input type="radio" id="txtLacteos" name="rdbDepartamento" class="form-check-input" @onchange="@(() => _departamento = "Lácteos")"><label class="form-check-label ms-2" for="txtLacteos">Lácteos</label>
+    </div>
+</div>
+@if (_editando >= 0)
+{
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-success" @onclick="ActaulizarProducto">Actualizar</button>
+            <button class="btn btn-danger" @onclick="Cancelar">Cancelar</button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mt-3">
+        <div class="col">
+            <button class="btn btn-primary" @onclick="AgregarProducto">Agregar</button>
+        </div>
+    </div>
+}
+
+@if (_existencias)
+{
+    <button class="btn btn-secondary mt-3" @onclick="(() => _existencias = !_existencias)">Listado</button>
+    @if (_inventarios.Count > 0)
+    {
+        <div class="row mt-5">
+            <div class="col">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Frutas</th>
+                            <th>Verduras</th>
+                            <th>Lácteos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@_departamentos.Count(d => d == "Frutas")</td>
+                            <td>@_departamentos.Count(d => d == "Verduras")</td>
+                            <td>@_departamentos.Count(d => d == "Lácteos")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <button class="btn btn-secondary mt-3" @onclick="(() => _existencias = !_existencias)">Existencias</button>
+    @if (_inventarios.Count > 0)
+    {
+        <div class="row mt-5">
+            <div class="col">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Inventario</th>
+                            <th>Nombre</th>
+                            <th>Departamento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < _inventarios.Count; i++)
+                        {
+                            int index = i;
+                            <tr>
+                                <td>@_inventarios[index]</td>
+                                <td>@_nombres[index]</td>
+                                <td>@_departamentos[index]</td>
+                                <td>
+                                    <button class="btn btn-danger" @onclick="@(() => EliminarProducto(index))">Eliminar</button>
+                                    <button class="btn btn-secondary ms-2" @onclick="@(() => EditarProducto(index))">Editar</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+
+@code {
+    private int _inventario, _editando = -1, _indice;
+    private string _nombre = string.Empty;
+    private string _departamento = string.Empty;
+    private List<int> _inventarios = new List<int>();
+    private List<string> _nombres = new List<string>();
+    private List<string> _departamentos = new List<string>();
+    private bool _error = false, _existencias = false;
+
+    private void AgregarProducto()
+    {
+        if (_inventarios.Contains(_inventario))
+        {
+            _error = true;
+            return;
+        }
+        _inventarios.Add(_inventario);
+        _nombres.Add(_nombre);
+        _departamentos.Add(_departamento);
+        _error = false;
+        _inventario = 0;
+        _nombre = string.Empty;
+    }
+
+    private void EliminarProducto(int index)
+    {
+        _inventarios.RemoveAt(index);
+        _nombres.RemoveAt(index);
+        _departamentos.RemoveAt(index);
+    }
+
+    private void EditarProducto(int index)
+    {
+        _editando = index;
+        _inventario = _inventarios[index];
+        _nombre = _nombres[index];
+        _departamento = _departamentos[index];
+    }
+
+    private void ActaulizarProducto()
+    {
+        if (_inventarios.Contains(_inventario) && _inventarios[_editando] != _inventario)
+        {
+            _error = true;
+            return;
+        }
+        _inventarios[_editando] = _inventario;
+        _nombres[_editando] = _nombre;
+        _departamentos[_editando] = _departamento;
+        _error = false;
+        Cancelar();
+    }
+
+    private void Cancelar()
+    {
+        _editando = -1;
+        _inventario = 0;
+        _nombre = string.Empty;
+        _departamento = string.Empty;
+    }
+
+}
