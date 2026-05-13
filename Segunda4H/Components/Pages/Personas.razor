@@ -1,100 +1,41 @@
 ﻿@page "/personas"
 @rendermode InteractiveServer
 @inject IRepositorioPersonas Repositorio
-<h3>Personas</h3>
+@inject NavigationManager Navigation
+<PageTitle>Personas</PageTitle>
+<h3>Listado de personas</h3>
+<button class="btn btn-primary mb-3" @onclick="@(() => Navigation.NavigateTo("/personas/nueva"))">Nueva persona</button>
 
-<EditForm Model="_persona" FormName="frmPersona" OnValidSubmit="Guardar">
-    <DataAnnotationsValidator />
-    @* <ValidationSummary /> *@
-    <div class="row align-items-center">
-        <div class="col col-2">
-            <label for="txtNombre" class="col-form-label">Nombre</label>
-        </div>
-        <div class="col col-10">
-            <InputText class="form-control" id="txtNombre" @bind-Value="_persona.Nombre" />
-            <ValidationMessage For="@(() => _persona.Nombre)" />
-        </div>
+@if (_personas == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
     </div>
-    <div class="row mt-3 align-items-center">
-        <div class="col col-2">
-            <label for="txtCorreo" class="col-form-label">Correo</label>
-        </div>
-        <div class="col col-10">
-            <InputText class="form-control" id="txtCorreo" @bind-Value="_persona.Correo" />
-            <ValidationMessage For="@(() => _persona.Correo)" />
-        </div>
+}
+else if (_personas.Count == 0)
+{
+    <div class="alert alert-info">
+        <h2>No se encuentran registradas personas</h2>
     </div>
-    <div class="row mt-3 align-items-center">
-        <div class="col col-2">
-            <label for="txtTelefono" class="col-form-label">Teléfono</label>
-        </div>
-        <div class="col col-10">
-            <InputText class="form-control" id="txtTelefono" @bind-Value="_persona.Telefono" />
-            <ValidationMessage For="@(() => _persona.Telefono)" />
-        </div>
-    </div>
-    <div class="row mt-3 align-items-center">
-        <div class="col col-2">
-            <label class="col-form-label">Género</label>
-        </div>
-        <div class="col col-10">
-            <InputRadioGroup TValue="string" @bind-Value="_persona.Genero">
-                <div class="form-check form-check-inline">
-                    <InputRadio TValue="string" Value="@("Femenino")" class="form-check-input" id="rFemenino" />
-                    <label class="form-check-label" for="rFemenino">Femenino</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <InputRadio TValue="string" Value="@("Masculino")" class="form-check-input" id="rMasculino" />
-                    <label class="form-check-label" for="rMasculino">Masculino</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <InputRadio TValue="string" Value="@("Otro")" class="form-check-input" id="rOtro" />
-                    <label class="form-check-label" for="rOtro">Otro</label>
-                </div>
-            </InputRadioGroup>
-            <ValidationMessage For="@(() => _persona.Genero)" />
-        </div>
-    </div>
-    <div class="row mt-3">
-        <div class="col">
-            <button class="btn btn-primary" type="submit">Guardar</button>
-        </div>
-    </div>
-</EditForm>
-
-<QuickGrid Items="_personas.AsQueryable()" Class="table table-striped" Pagination="_paginationState">
-    <PropertyColumn Property="@(p => p.Nombre)" Sortable="true" />
-    <PropertyColumn Property="@(p => p.Correo)" />
-    <PropertyColumn Property="@(p => p.Telefono)" />
-    <PropertyColumn Property="@(p => p.Genero)" Sortable="true" />
-</QuickGrid>
-<Paginator State="_paginationState" />
-
-@* <table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Género</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var persona in _personas)
-        {
-            <tr>
-                <td>@persona.Nombre</td>
-                <td>@persona.Correo</td>
-                <td>@persona.Telefono</td>
-                <td>@persona.Genero</td>
-            </tr>
-        }
-    </tbody>
-</table> *@
+}
+else
+{
+    <QuickGrid Items="_personas.AsQueryable()" Class="table table-striped" Pagination="_paginationState">
+        <PropertyColumn Property="@(p => p.Nombre)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Correo)" />
+        <PropertyColumn Property="@(p => p.Telefono)" />
+        <PropertyColumn Property="@(p => p.Genero)" Sortable="true" />
+        <TemplateColumn Title="Actions">
+            <button class="btn btn-outline-secondary" @onclick="@(() => Eliminar(context))">Eliminar</button>
+            <button class="btn btn-outline-primary" @onclick="@(() => Editar(context))">Editar</button>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="_paginationState" />
+}
 
 @code {
-    private List<Persona> _personas = new List<Persona>();
-    private Persona _persona = new();
+    private List<Persona>? _personas;
+    private Persona? _persona;
     private PaginationState _paginationState = new PaginationState { ItemsPerPage = 2 };
 
     // Simulamos la carga de datos desde una fuente externa
@@ -114,21 +55,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _personas = await Repositorio.ObtenerPersonasAsync();
+        _personas = await Repositorio.ObtenerPersonas();
     }
 
-
-
-
-    private void Guardar(EditContext args)
+    private void Editar(Persona persona)
     {
-        _personas.Add(new Persona
-        {
-            Nombre = _persona.Nombre,
-            Correo = _persona.Correo,
-            Telefono = _persona.Telefono,
-            Genero = _persona.Genero
-        });
-        _persona = new Persona();
+        Navigation.NavigateTo($"/personas/editar/{persona.Id}");
+    }
+
+    private async Task Eliminar(Persona persona)
+    {
+        await Repositorio.EliminarPersona(persona.Id);
     }
 }

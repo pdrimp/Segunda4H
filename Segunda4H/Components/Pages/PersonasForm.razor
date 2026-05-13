@@ -1,0 +1,116 @@
+﻿@page "/personas/nueva"
+@page "/personas/editar/{Id:int}"
+@using System.Threading.Tasks
+@rendermode InteractiveServer
+@inject IRepositorioPersonas Repositorio
+@inject NavigationManager Navigation
+
+@if (_error)
+{
+    <div class="alert alert-danger">
+        <h2>La persona que intenta editar no se encuentra registrada</h2>
+    </div>
+    <button class="btn btn-danger" @onclick="Regresar">Regresar</button>
+}
+else
+{
+    <EditForm Model="_persona" FormName="frmPersona" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <div class="row align-items-center">
+            <div class="col col-2">
+                <label for="txtNombre" class="col-form-label">Nombre</label>
+            </div>
+            <div class="col col-10">
+                <InputText class="form-control" id="txtNombre" @bind-Value="_persona.Nombre" />
+                <ValidationMessage For="@(() => _persona.Nombre)" />
+            </div>
+        </div>
+        <div class="row mt-3 align-items-center">
+            <div class="col col-2">
+                <label for="txtCorreo" class="col-form-label">Correo</label>
+            </div>
+            <div class="col col-10">
+                <InputText class="form-control" id="txtCorreo" @bind-Value="_persona.Correo" />
+                <ValidationMessage For="@(() => _persona.Correo)" />
+            </div>
+        </div>
+        <div class="row mt-3 align-items-center">
+            <div class="col col-2">
+                <label for="txtTelefono" class="col-form-label">Teléfono</label>
+            </div>
+            <div class="col col-10">
+                <InputText class="form-control" id="txtTelefono" @bind-Value="_persona.Telefono" />
+                <ValidationMessage For="@(() => _persona.Telefono)" />
+            </div>
+        </div>
+        <div class="row mt-3 align-items-center">
+            <div class="col col-2">
+                <label class="col-form-label">Género</label>
+            </div>
+            <div class="col col-10">
+                <InputRadioGroup TValue="string" @bind-Value="_persona.Genero">
+                    <div class="form-check form-check-inline">
+                        <InputRadio TValue="string" Value="@("Femenino")" class="form-check-input" id="rFemenino" />
+                        <label class="form-check-label" for="rFemenino">Femenino</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <InputRadio TValue="string" Value="@("Masculino")" class="form-check-input" id="rMasculino" />
+                        <label class="form-check-label" for="rMasculino">Masculino</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <InputRadio TValue="string" Value="@("Otro")" class="form-check-input" id="rOtro" />
+                        <label class="form-check-label" for="rOtro">Otro</label>
+                    </div>
+                </InputRadioGroup>
+                <ValidationMessage For="@(() => _persona.Genero)" />
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-primary me-3" type="submit">Guardar</button>
+                <button class="btn btn-danger" @onclick="Regresar">Cancelar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Persona _persona = new();
+    private bool _error = false;
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            // Cargar la persona existente para editar
+            var persona = await Repositorio.ObtenerPersonaPorId(Id);
+            if (persona != null)
+            {
+                _persona = persona;
+            }
+            else
+            {
+                _error = true;
+            }
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (Id > 0)
+        {
+            await Repositorio.ActualizarPersona(Id, _persona);
+        }
+        else
+        {
+            await Repositorio.AgregarPersona(_persona);
+        }
+    }
+
+    private void Regresar()
+    {
+        Navigation.NavigateTo("/personas");
+    }
+}
