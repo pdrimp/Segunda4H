@@ -1,0 +1,77 @@
+﻿@page "/clasificaciones/nueva"
+@page "/clasificaciones/editar/{Id:int}"
+@using System.Threading.Tasks
+@rendermode InteractiveServer
+@inject IRepositorioClasificaciones Repositorio
+@inject NavigationManager Navigation
+
+@if (_error)
+{
+    <div class="alert alert-danger">
+        <h2>La persona que intenta editar no se encuentra registrada</h2>
+    </div>
+    <button class="btn btn-danger" @onclick="Regresar">Regresar</button>
+}
+else
+{
+    <EditForm Model="_clasificacion" FormName="frmClasificacion" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <div class="row align-items-center">
+            <div class="col col-2">
+                <label for="txtNombre" class="col-form-label">Nombre</label>
+            </div>
+            <div class="col col-10">
+                <InputText class="form-control" id="txtNombre" @bind-Value="_clasificacion.Nombre" />
+                <ValidationMessage For="@(() => _clasificacion.Nombre)" />
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-primary me-3" type="submit">Guardar</button>
+                <button class="btn btn-danger" @onclick="Regresar">Cancelar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Clasificacion _clasificacion = new();
+    private bool _error = false;
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            // Cargar la clasificación existente para editar
+            var clasificacion = await Repositorio.ObtenerClasificacionPorId(Id);
+            if (clasificacion != null)
+            {
+                _clasificacion = clasificacion;
+            }
+            else
+            {
+                _error = true;
+            }
+        }
+    }
+
+    private async Task Guardar()
+    {
+        if (Id > 0)
+        {
+            await Repositorio.ActualizarClasificacion(Id, _clasificacion);
+        }
+        else
+        {
+            await Repositorio.AgregarClasificacion(_clasificacion);
+        }
+        Navigation.NavigateTo("/clasificaciones");
+    }
+
+    private void Regresar()
+    {
+        Navigation.NavigateTo("/clasificaciones");
+    }
+}

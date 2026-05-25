@@ -25,6 +25,7 @@ else
         <PropertyColumn Property="@(p => p.Correo)" />
         <PropertyColumn Property="@(p => p.Telefono)" />
         <PropertyColumn Property="@(p => p.Genero)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.Clasificacion!.Nombre)" Title="Clasificación" Sortable="true" />
         <TemplateColumn Title="Actions">
             <button class="btn btn-outline-secondary" @onclick="@(() => Eliminar(context))">Eliminar</button>
             <button class="btn btn-outline-primary" @onclick="@(() => Editar(context))">Editar</button>

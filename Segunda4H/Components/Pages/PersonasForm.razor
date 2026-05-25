@@ -3,6 +3,7 @@
 @using System.Threading.Tasks
 @rendermode InteractiveServer
 @inject IRepositorioPersonas Repositorio
+@inject IRepositorioClasificaciones RepositorioClasificaciones
 @inject NavigationManager Navigation
 
 @if (_error)
@@ -65,10 +66,26 @@ else
                 <ValidationMessage For="@(() => _persona.Genero)" />
             </div>
         </div>
-        <div class="row mt-3">
-            <div class="col">
-                <button class="btn btn-primary me-3" type="submit">Guardar</button>
-                <button class="btn btn-danger" @onclick="Regresar">Cancelar</button>
+        <div class="row mt-3 align-items-center">
+            <div class="col col-2">
+                <label for="ddlClasificacion" class="col-form-label">Clasificación</label>
+            </div>
+            <div class="col col-10 ">
+                <InputSelect class="form-select" id="ddlClasificacion" @bind-Value="_persona.ClasificacionId">
+                    <option value="">Seleccione una clasificación</option>
+                    @foreach (var clasificacion in _clasificaciones)
+                    {
+                        <option value="@clasificacion.Id">@clasificacion.Nombre</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => _persona.ClasificacionId)" />
+            </div>
+
+            <div class="row mt-3">
+                <div class="col">
+                    <button class="btn btn-primary me-3" type="submit">Guardar</button>
+                    <button class="btn btn-danger" @onclick="Regresar">Cancelar</button>
+                </div>
             </div>
         </div>
     </EditForm>
@@ -80,8 +97,13 @@ else
     public int Id { get; set; }
     private Persona _persona = new();
     private bool _error = false;
+    private List<Clasificacion> _clasificaciones = new();
+
+
     protected override async Task OnInitializedAsync()
     {
+        _clasificaciones = await RepositorioClasificaciones.ObtenerClasificaciones();
+
         if (Id > 0)
         {
             // Cargar la persona existente para editar
@@ -107,6 +129,7 @@ else
         {
             await Repositorio.AgregarPersona(_persona);
         }
+        Navigation.NavigateTo("/personas");
     }
 
     private void Regresar()

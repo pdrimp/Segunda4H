@@ -1,0 +1,58 @@
+﻿@page "/clasificaciones"
+@rendermode InteractiveServer
+@inject IRepositorioClasificaciones Repositorio
+@inject NavigationManager Navigation
+<PageTitle>Clasificaciones</PageTitle>
+<h3>Listado de clasificaciones</h3>
+<button class="btn btn-primary mb-3" @onclick="@(() => Navigation.NavigateTo("/clasificaciones/nueva"))">Nueva clasificación</button>
+
+@if (_clasificaciones == null)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else if (_clasificaciones.Count == 0)
+{
+    <div class="alert alert-info">
+        <h2>No se encuentran registradas clasificaciones</h2>
+    </div>
+}
+else
+{
+    <QuickGrid Items="_clasificaciones.AsQueryable()" Class="table table-striped" Pagination="_paginationState">
+        <PropertyColumn Property="@(p => p.Nombre)" Sortable="true" />
+        <TemplateColumn Title="Personas">
+            @foreach (var persona in context.Personas)
+            {
+                <div>@persona.Nombre</div>
+            }
+        </TemplateColumn>
+        <TemplateColumn Title="Actions">
+            <button class="btn btn-outline-secondary" @onclick="@(() => Eliminar(context))">Eliminar</button>
+            <button class="btn btn-outline-primary" @onclick="@(() => Editar(context))">Editar</button>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="_paginationState" />
+}
+
+@code {
+    private List<Clasificacion>? _clasificaciones;
+    private Clasificacion? _clasificacion;
+    private PaginationState _paginationState = new PaginationState { ItemsPerPage = 2 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clasificaciones = await Repositorio.ObtenerClasificaciones();
+    }
+
+    private void Editar(Clasificacion clasificacion)
+    {
+        Navigation.NavigateTo($"/clasificaciones/editar/{clasificacion.Id}");
+    }
+
+    private async Task Eliminar(Clasificacion clasificacion)
+    {
+        await Repositorio.EliminarClasificacion(clasificacion.Id);
+    }
+}

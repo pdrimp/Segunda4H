@@ -15,5 +15,8 @@ namespace Segunda4H.Data
         public string Telefono { get; set; } = string.Empty;
         [Required(ErrorMessage = "El género es obligatorio.")]
         public string Genero { get; set; } = string.Empty;
+        [Range(1, int.MaxValue, ErrorMessage = "La clasificación es obligatoria.")]
+        public int ClasificacionId { get; set; }
+        virtual public Clasificacion? Clasificacion { get; set; }
     }
 }

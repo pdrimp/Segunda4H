@@ -45,7 +45,7 @@ namespace Segunda4H.Repositorios
 
         public async Task<List<Persona>> ObtenerPersonas()
         {
-            return await _context.Personas.ToListAsync();
+            return await _context.Personas.Include(p => p.Clasificacion).ToListAsync();
         }
 
     }
