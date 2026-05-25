@@ -37,7 +37,7 @@ namespace Segunda4H.Repositorios
 
         public async Task<List<Clasificacion>> ObtenerClasificaciones()
         {
-            return await _context.Clasificaciones.Include(c => c.Personas).ToListAsync();
+            return await _context.Clasificaciones.AsNoTracking().Include(c => c.Personas).ToListAsync();
         }
     }
 }

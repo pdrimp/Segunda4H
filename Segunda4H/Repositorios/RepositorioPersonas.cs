@@ -23,6 +23,7 @@ namespace Segunda4H.Repositorios
             personaExistente.Correo = persona.Correo;
             personaExistente.Telefono = persona.Telefono;
             personaExistente.Genero = persona.Genero;
+            personaExistente.Habitos = persona.Habitos;
             await _context.SaveChangesAsync();
         }
 
@@ -40,12 +41,12 @@ namespace Segunda4H.Repositorios
 
         public async Task<Persona?> ObtenerPersonaPorId(int id)
         {
-            return await _context.Personas.FindAsync(id);
+            return await _context.Personas.Include(h => h.Habitos).FirstOrDefaultAsync(r => r.Id == id);
         }
 
         public async Task<List<Persona>> ObtenerPersonas()
         {
-            return await _context.Personas.Include(p => p.Clasificacion).ToListAsync();
+            return await _context.Personas.Include(p => p.Clasificacion).Include(h=>h.Habitos).ToListAsync();
         }
 
     }

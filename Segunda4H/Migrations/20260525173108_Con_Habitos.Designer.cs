@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Segunda4H.Data;
 
@@ -10,9 +11,11 @@ using Segunda4H.Data;
 namespace Segunda4H.Migrations
 {
     [DbContext(typeof(DirectorioDBContext))]
-    partial class DirectorioDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260525173108_Con_Habitos")]
+    partial class Con_Habitos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

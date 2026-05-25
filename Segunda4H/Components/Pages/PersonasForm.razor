@@ -4,6 +4,7 @@
 @rendermode InteractiveServer
 @inject IRepositorioPersonas Repositorio
 @inject IRepositorioClasificaciones RepositorioClasificaciones
+@inject IRepositorioHabitos RepositorioHabitos
 @inject NavigationManager Navigation
 
 @if (_error)
@@ -81,6 +82,35 @@ else
                 <ValidationMessage For="@(() => _persona.ClasificacionId)" />
             </div>
 
+            <!-- Hábitos (checkboxes) -->
+            <div class="row mt-3 align-items-start">
+                <div class="col-2">
+                    <label class="col-form-label">Hábitos</label>
+                </div>
+                <div class="col-10">
+                    @if (_habitos != null && _habitos.Any())
+                    {
+                        <div class="d-flex flex-wrap">
+                            @foreach (var h in _habitos)
+                            {
+                                <div class="form-check me-3">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="habito_@h.Id"
+                                           checked="@IsHabitoSelected(h.Id)"
+                                           @onchange="(ChangeEventArgs e) => OnHabitoChanged(h.Id, Convert.ToBoolean(e.Value))" />
+                                    <label class="form-check-label" for="habito_@h.Id">@h.Nombre</label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No hay hábitos disponibles.</div>
+                    }
+                </div>
+            </div>
+
             <div class="row mt-3">
                 <div class="col">
                     <button class="btn btn-primary me-3" type="submit">Guardar</button>
@@ -91,18 +121,20 @@ else
     </EditForm>
 }
 
-
 @code {
     [Parameter]
     public int Id { get; set; }
     private Persona _persona = new();
     private bool _error = false;
     private List<Clasificacion> _clasificaciones = new();
+    private List<Habito> _habitos = new();
+    private List<int> _habitosSeleccionados = new();
 
 
     protected override async Task OnInitializedAsync()
     {
         _clasificaciones = await RepositorioClasificaciones.ObtenerClasificaciones();
+        _habitos = await RepositorioHabitos.ObtenerHabitos();
 
         if (Id > 0)
         {
@@ -111,6 +143,10 @@ else
             if (persona != null)
             {
                 _persona = persona;
+                if (persona.Habitos is not null)
+                {
+                    _habitosSeleccionados = persona.Habitos.Select(_ => _.Id).ToList();
+                }
             }
             else
             {
@@ -121,6 +157,9 @@ else
 
     private async Task Guardar()
     {
+        // Sincronizar la colección de hábitos de la persona con los IDs seleccionados
+        _persona.Habitos = _habitos.Where(h => _habitosSeleccionados.Contains(h.Id)).ToList();
+
         if (Id > 0)
         {
             await Repositorio.ActualizarPersona(Id, _persona);
@@ -136,4 +175,20 @@ else
     {
         Navigation.NavigateTo("/personas");
     }
+
+    private void OnHabitoChanged(int habitoId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!_habitosSeleccionados.Contains(habitoId))
+                _habitosSeleccionados.Add(habitoId);
+        }
+        else
+        {
+            if (_habitosSeleccionados.Contains(habitoId))
+                _habitosSeleccionados.Remove(habitoId);
+        }
+    }
+
+    private bool IsHabitoSelected(int id) => _habitosSeleccionados.Contains(id);
 }

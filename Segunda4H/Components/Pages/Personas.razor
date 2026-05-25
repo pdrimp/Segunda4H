@@ -26,6 +26,19 @@ else
         <PropertyColumn Property="@(p => p.Telefono)" />
         <PropertyColumn Property="@(p => p.Genero)" Sortable="true" />
         <PropertyColumn Property="@(p => p.Clasificacion!.Nombre)" Title="Clasificación" Sortable="true" />
+        <TemplateColumn Title="Hábitos">
+            @if (context.Habitos != null && context.Habitos.Any())
+            {
+                foreach (var h in context.Habitos)
+                {
+                    <span class="badge bg-secondary me-1">@h.Nombre</span>
+                }
+            }
+            else
+            {
+                <span class="text-muted">—</span>
+            }
+        </TemplateColumn>
         <TemplateColumn Title="Actions">
             <button class="btn btn-outline-secondary" @onclick="@(() => Eliminar(context))">Eliminar</button>
             <button class="btn btn-outline-primary" @onclick="@(() => Editar(context))">Editar</button>
@@ -37,7 +50,7 @@ else
 @code {
     private List<Persona>? _personas;
     private Persona? _persona;
-    private PaginationState _paginationState = new PaginationState { ItemsPerPage = 2 };
+    private PaginationState _paginationState = new PaginationState { ItemsPerPage = 5 };
 
     // Simulamos la carga de datos desde una fuente externa
     protected override void OnInitialized()
